@@ -284,7 +284,7 @@ class ActiveRecord::Base
     def upsert( upsert_attributes_and_unique_columns )
       Upsert.batch( connection, table_name ) do |up|
         upsert_attributes_and_unique_columns.each do |attr, uniq_cols|
-          up.row(attr.extract!(*uniq_cols) }, attr)
+          up.row(attr.extract!(*uniq_cols), attr)
         end
       end
       upsert_attributes_and_unique_columns.length
