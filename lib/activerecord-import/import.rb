@@ -1,5 +1,6 @@
 require "ostruct"
 require "upsert"
+require "model_errors_patch"
 
 module ActiveRecord::Import::ConnectionAdapters ; end
 
