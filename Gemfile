@@ -1,6 +1,7 @@
 source :gemcutter
 
 gem "activerecord", "~> 3.0"
+gem "upsert"
 
 group :development do
   gem "rake"

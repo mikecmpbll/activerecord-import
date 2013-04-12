@@ -259,7 +259,7 @@ class ActiveRecord::Base
         end
         if not instance.valid?
           if instance.errors.error_names.values.flatten.all?{ |a| a == :taken }
-            upsert_attributes_and_unique_columns << [ array_of_attributes[ i ], instance.errors.keys ]
+            upsert_attributes_and_unique_columns << [ instance.attributes.to_options.except(:id), instance.errors.keys ]
           else
             failed_instances << instance
           end
@@ -283,8 +283,8 @@ class ActiveRecord::Base
 
     def upsert( upsert_attributes_and_unique_columns )
       Upsert.batch( connection, table_name ) do |up|
-        upsert_attributes_and_unique_columns.each do |attr, uniq_col|
-          up.row(attr.select{ |k,_| uniq_col.include?( k ) }, attr.select{ |k,_| !uniq_col.include?( k ) })
+        upsert_attributes_and_unique_columns.each do |attr, uniq_cols|
+          up.row(attr.extract!(*uniq_cols) }, attr)
         end
       end
       upsert_attributes_and_unique_columns.length
