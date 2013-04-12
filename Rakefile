@@ -19,6 +19,7 @@ begin
     bundler.dependencies_for(:default).each do |dependency|
       gem.add_dependency dependency.name, *dependency.requirements_list
     end
+    gem.add_dependency "upsert", ">=0"
 
     # gem is a Gem::Specification... see http://www.rubygems.org/read/chapter/20 for additional settings
   end

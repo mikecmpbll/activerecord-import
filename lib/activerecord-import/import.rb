@@ -1,9 +1,10 @@
 require "ostruct"
+require "upsert"
 
 module ActiveRecord::Import::ConnectionAdapters ; end
 
 module ActiveRecord::Import #:nodoc:
-  class Result < Struct.new(:failed_instances, :num_inserts)
+  class Result < Struct.new(:failed_instances, :num_inserts, :num_updates)
   end
 
   module ImportSupport #:nodoc:
@@ -191,7 +192,7 @@ class ActiveRecord::Base
         end
         # supports empty array
       elsif args.last.is_a?( Array ) and args.last.empty?
-        return ActiveRecord::Import::Result.new([], 0) if args.last.empty?
+        return ActiveRecord::Import::Result.new([], 0, 0) if args.last.empty?
         # supports 2-element array and array
       elsif args.size == 2 and args.first.is_a?( Array ) and args.last.is_a?( Array )
         column_names, array_of_attributes = args
@@ -219,7 +220,7 @@ class ActiveRecord::Base
         import_with_validations( column_names, array_of_attributes, options )
       else
         num_inserts = import_without_validations_or_callbacks( column_names, array_of_attributes, options )
-        ActiveRecord::Import::Result.new([], num_inserts)
+        ActiveRecord::Import::Result.new([], num_inserts, 0)
       end
 
       if options[:synchronize]
@@ -244,6 +245,7 @@ class ActiveRecord::Base
     # +column_names+, +array_of_attributes+ and +options+.
     def import_with_validations( column_names, array_of_attributes, options={} )
       failed_instances = []
+      upsert_attributes_and_unique_columns = []
     
       # create instances for each of our column/value sets
       arr = validations_array_for_column_names_and_attributes( column_names, array_of_attributes )    
@@ -255,9 +257,13 @@ class ActiveRecord::Base
           hsh.each_pair{ |k,v| model.send("#{k}=", v) }
         end
         if not instance.valid?
+          if instance.errors.error_names.values.flatten.all?{ |a| a == :taken }
+            upsert_attributes_and_unique_columns << [ array_of_attributes[ i ], instance.errors.keys ]
+          else
+            failed_instances << instance
+          end
           array_of_attributes[ i ] = nil
-          failed_instances << instance
-        end    
+        end
       end
       array_of_attributes.compact!
 
@@ -266,7 +272,21 @@ class ActiveRecord::Base
                     else
                       import_without_validations_or_callbacks( column_names, array_of_attributes, options )
                     end
-      ActiveRecord::Import::Result.new(failed_instances, num_inserts)
+      num_updates = if upsert_attributes_and_unique_columns.empty?
+                      0
+                    else
+                      upsert( upsert_attributes_and_unique_columns )
+                    end
+      ActiveRecord::Import::Result.new( failed_instances, num_inserts, num_updates )
+    end
+
+    def upsert( upsert_attributes_and_unique_columns )
+      Upsert.batch( connection, table_name ) do |up|
+        upsert_attributes_and_unique_columns.each do |attr, uniq_col|
+          up.row(attr.select{ |k,_| uniq_col.include?( k ) }, attr.select{ |k,_| !uniq_col.include?( k ) })
+        end
+      end
+      upsert_attributes_and_unique_columns.length
     end
     
     # Imports the passed in +column_names+ and +array_of_attributes+
