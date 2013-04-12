@@ -10,7 +10,7 @@ end
 group :test do
   # Database Adapters
   platforms :ruby do
-    gem "mysql", "~> 2.8.1"
+    # gem "mysql", "~> 2.8.1"
     gem "mysql2", "~> 0.3.0"
     gem "pg", "~> 0.9"
     gem "sqlite3-ruby", "~> 1.3.1"
