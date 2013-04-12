@@ -11,7 +11,7 @@ begin
     gem.summary = %Q{Bulk-loading extension for ActiveRecord}
     gem.description = %Q{Extraction of the ActiveRecord::Base#import functionality from ar-extensions for Rails 3 and beyond}
     gem.email = "zach.dennis@gmail.com"
-    gem.homepage = "http://github.com/zdennis/activerecord-import"
+    gem.homepage = "http://github.com/mikecmpbll/activerecord-import"
     gem.authors = ["Zach Dennis"]
     gem.files = FileList["VERSION", "Rakefile", "README*", "lib/**/*"]
 

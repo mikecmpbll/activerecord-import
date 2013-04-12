@@ -41,7 +41,7 @@ Gem::Specification.new do |s|
     "lib/activerecord-import/sqlite3.rb",
     "lib/activerecord-import/synchronize.rb"
   ]
-  s.homepage = "http://github.com/zdennis/activerecord-import"
+  s.homepage = "http://github.com/mikecmpbll/activerecord-import"
   s.require_paths = ["lib"]
   s.rubygems_version = "2.0.3"
   s.summary = "Bulk-loading extension for ActiveRecord"
