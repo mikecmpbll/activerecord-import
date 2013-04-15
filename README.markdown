@@ -1,6 +1,12 @@
 # activerecord-import
 
-activerecord-import is a library for bulk inserting data using ActiveRecord. 
+activerecord-import is a library for bulk inserting data using ActiveRecord.
+
+### Modification
+
+I have modified activerecord-import to revert to upserts with the Upsert gem, when (only) a `:taken` validation fails for that object. This means that where they are records that are deemed to already exist, Upsert will update the columns with your fresh data. This is an improvement in my view to using ON DUPLICATE KEY UPDATE, because it doesn't rely on database level unique constraints - it uses the model's validations.
+
+Word of warning - due to my ameteurishness, this gem implements a monkey patch for AR validations which persists the validation type through to the error object, this is to enable me to determine, of the failed validations, which are uniqueness constraints or not. There's probably a better way to do this but what I have done seems to work for me.
 
 ### Rails 3.1.x and higher
 
