@@ -1,6 +1,5 @@
 require "ostruct"
 require "upsert"
-require "model_errors_patch"
 
 module ActiveRecord::Import::ConnectionAdapters ; end
 
@@ -276,15 +275,15 @@ class ActiveRecord::Base
       num_updates = if upsert_attributes_and_unique_columns.empty?
                       0
                     else
-                      upsert( upsert_attributes_and_unique_columns )
+                      upsert( upsert_attributes_and_unique_columns, options[:except] )
                     end
       ActiveRecord::Import::Result.new( failed_instances, num_inserts, num_updates )
     end
 
-    def upsert( upsert_attributes_and_unique_columns )
+    def upsert( upsert_attributes_and_unique_columns, exceptions = [] )
       Upsert.batch( connection, table_name ) do |up|
         upsert_attributes_and_unique_columns.each do |attr, uniq_cols|
-          up.row(attr.extract!(*uniq_cols), attr)
+          up.row(attr.extract!(*uniq_cols), attr.except(*exceptions))
         end
       end
       upsert_attributes_and_unique_columns.length
